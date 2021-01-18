@@ -3,17 +3,21 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_chat_app/src/widgets/chat_message.dart';
 
 class ChatScreen extends StatefulWidget {
   @override
   _ChatScreenState createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   final TextEditingController _textEditingController =
       new TextEditingController();
   final FocusNode _focusNode = new FocusNode();
   bool _isTyping = false;
+
+  final List<ChatMessage> _chatMessages = [];
+
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +52,8 @@ class _ChatScreenState extends State<ChatScreen> {
             Flexible(
                 child: ListView.builder(
               physics: BouncingScrollPhysics(),
-              itemBuilder: (_, i) => Text('$i'),
+              itemCount: _chatMessages.length,
+              itemBuilder: (_, i) => _chatMessages[i],
               reverse: true,
             )),
             Divider(
@@ -127,11 +132,31 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   _handleSubmit(String text) {
+    if(text.length == 0) return;
     print(text);
     _textEditingController.clear();
     _focusNode.requestFocus();
+    final newMessage = new ChatMessage(
+      uuid: '123',
+      text: text,
+      animationController: AnimationController(vsync: this, duration: Duration(milliseconds: 400)),
+    );
+    newMessage.animationController.forward();
+
     setState(() {
       _isTyping = false;
+      _chatMessages.insert(0, newMessage);
     });
   }
+
+  @override
+  void dispose() {
+    // BORRAR EL SOCKET
+    for( ChatMessage message in _chatMessages ) {
+      message.animationController.dispose();
+    }
+
+    super.dispose();
+  }
+
 }
