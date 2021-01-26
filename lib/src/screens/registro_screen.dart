@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_chat_app/src/helpers/show_alert.dart';
+import 'package:flutter_chat_app/src/services/auth_service.dart';
 import 'package:flutter_chat_app/src/widgets/Labels.dart';
 import 'package:flutter_chat_app/src/widgets/button_custom.dart';
 import 'package:flutter_chat_app/src/widgets/input_custom.dart';
 import 'package:flutter_chat_app/src/widgets/logo.dart';
+import 'package:provider/provider.dart';
 
 class RegistroScreen extends StatelessWidget {
   @override
@@ -45,6 +48,9 @@ class __LoginFormState extends State<_LoginForm> {
 
   @override
   Widget build(BuildContext context) {
+
+    final authProvider = Provider.of<AuthService>(context);
+
     return Container(
       margin: EdgeInsets.only(top: 40),
       padding: EdgeInsets.symmetric(horizontal: 30),
@@ -70,8 +76,13 @@ class __LoginFormState extends State<_LoginForm> {
         ),
         ButtonCustom(
           label: 'Regístrate',
-          onPress: () {
-            print('hola holitas asfa');
+          onPress: authProvider.autenticando ? null : () async {
+            final registerResponse = await authProvider.register(_nombreController.text, _emailController.text, _passwordController.text);
+            if(registerResponse is bool && registerResponse == true) {
+              Navigator.pushReplacementNamed(context, 'usuarios');
+            } else {
+              showAlert(context, 'Error', registerResponse);
+            }
           },
         ),
       ]),

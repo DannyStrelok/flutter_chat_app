@@ -15,6 +15,7 @@ class ButtonCustom extends StatelessWidget {
           elevation: MaterialStateProperty.resolveWith<double>((states) => 2),
           backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
             if(states.contains(MaterialState.pressed)) return Colors.blue[200];
+            if(states.contains(MaterialState.disabled)) return Colors.grey[400];
             return Colors.blue;
           } ),
           shape: MaterialStateProperty.resolveWith<OutlinedBorder>((states) => StadiumBorder())

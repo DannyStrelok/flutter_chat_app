@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_chat_app/src/helpers/show_alert.dart';
+import 'package:flutter_chat_app/src/services/auth_service.dart';
 import 'package:flutter_chat_app/src/widgets/Labels.dart';
 import 'package:flutter_chat_app/src/widgets/button_custom.dart';
 import 'package:flutter_chat_app/src/widgets/input_custom.dart';
 import 'package:flutter_chat_app/src/widgets/logo.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatelessWidget {
   @override
@@ -17,9 +20,15 @@ class LoginScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Logo(label: 'Chat app',),
+                  Logo(
+                    label: 'Chat app',
+                  ),
                   _LoginForm(),
-                  Labels( route: 'registro', title: '¿No tienes una cuenta?', label: 'Crea una cuenta',),
+                  Labels(
+                    route: 'registro',
+                    title: '¿No tienes una cuenta?',
+                    label: 'Crea una cuenta',
+                  ),
                   Text(
                     'Términos y condiciones de uso',
                     style: TextStyle(fontWeight: FontWeight.w300),
@@ -43,6 +52,8 @@ class __LoginFormState extends State<_LoginForm> {
 
   @override
   Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context);
+
     return Container(
       margin: EdgeInsets.only(top: 40),
       padding: EdgeInsets.symmetric(horizontal: 30),
@@ -62,9 +73,21 @@ class __LoginFormState extends State<_LoginForm> {
         ),
         ButtonCustom(
           label: 'Acceder',
-          onPress: () {
-            print('hola holitas asfa');
-          },
+          onPress: authService.autenticando
+              ? null
+              : () async {
+                  FocusScope.of(context).unfocus();
+                  final loginResult = await authService.login(
+                      _emailController.text, _passwordController.text);
+                  print(loginResult);
+                  if(loginResult) {
+                    // ir a la pantalla home
+                    Navigator.pushReplacementNamed(context, 'usuarios');
+                  } else {
+                    // mostrar mensaje de error
+                    showAlert(context, 'Login incorrecto', 'Email o contraseña incorrectas');
+                  }
+                },
         ),
       ]),
     );

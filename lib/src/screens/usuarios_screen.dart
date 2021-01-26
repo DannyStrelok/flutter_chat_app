@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/src/models/usuario.dart';
+import 'package:flutter_chat_app/src/services/auth_service.dart';
+import 'package:provider/provider.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 class UsuariosScreen extends StatefulWidget {
@@ -19,10 +21,11 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Perfil de usuario',
+          authService.usuario.nombre,
           style: TextStyle(color: Colors.black54),
         ),
         elevation: 1,
@@ -32,7 +35,10 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
             Icons.exit_to_app,
             color: Colors.black54,
           ),
-          onPressed: () {},
+          onPressed: () {
+            AuthService.deleteToken();
+            Navigator.pushReplacementNamed(context, 'login');
+          },
         ),
         actions: [
           Container(
