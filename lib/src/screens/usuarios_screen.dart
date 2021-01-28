@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/src/models/usuario.dart';
 import 'package:flutter_chat_app/src/services/auth_service.dart';
+import 'package:flutter_chat_app/src/services/chat_service.dart';
 import 'package:flutter_chat_app/src/services/socket_service.dart';
+import 'package:flutter_chat_app/src/services/usuarios_service.dart';
 import 'package:provider/provider.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
@@ -14,11 +16,20 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
   RefreshController _refreshController =
       RefreshController(initialRefresh: false);
 
-  final usuarios = [
-    Usuario(uuid: '1', nombre: 'Daniel', email: 'test@test.com', online: true),
-    Usuario(uuid: '2', nombre: 'Eva', email: 'test1@test.com', online: true),
-    Usuario(uuid: '3', nombre: 'Jorge', email: 'test2@test.com', online: false),
-  ];
+  final usuariosService = new UsuariosService();
+  List<Usuario> usuarios = [];
+
+  // final usuarios = [
+  //   Usuario(uuid: '1', nombre: 'Daniel', email: 'test@test.com', online: true),
+  //   Usuario(uuid: '2', nombre: 'Eva', email: 'test1@test.com', online: true),
+  //   Usuario(uuid: '3', nombre: 'Jorge', email: 'test2@test.com', online: false),
+  // ];
+
+  @override
+  void initState() {
+    this._loadUsers();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +89,11 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
 
   ListTile _userListTile(Usuario usuario) {
     return ListTile(
-      onTap: () {},
+      onTap: () {
+        final chatService = Provider.of<ChatService>(context, listen: false);
+        chatService.usuarioTo = usuario;
+        Navigator.pushNamed(context, 'chat');
+      },
       title: Text(usuario.nombre),
       subtitle: Text(usuario.email),
       leading: CircleAvatar(
@@ -104,7 +119,11 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
   }
 
   _loadUsers() async {
-    await Future.delayed(Duration(milliseconds: 1000));
+    // await Future.delayed(Duration(milliseconds: 1000));
+
+    this.usuarios = await this.usuariosService.getUsuarios();
+    setState(() {});
+
     _refreshController.refreshCompleted();
   }
 }

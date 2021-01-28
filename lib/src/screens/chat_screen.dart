@@ -3,7 +3,11 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_chat_app/src/services/auth_service.dart';
+import 'package:flutter_chat_app/src/services/chat_service.dart';
+import 'package:flutter_chat_app/src/services/socket_service.dart';
 import 'package:flutter_chat_app/src/widgets/chat_message.dart';
+import 'package:provider/provider.dart';
 
 class ChatScreen extends StatefulWidget {
   @override
@@ -15,12 +19,31 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       new TextEditingController();
   final FocusNode _focusNode = new FocusNode();
   bool _isTyping = false;
+  ChatService chatService;
+  SocketService socketService;
+  AuthService authService;
 
   final List<ChatMessage> _chatMessages = [];
 
+  @override
+  void initState() {
+    this.chatService = Provider.of<ChatService>(context, listen: false);
+    this.socketService = Provider.of<SocketService>(context, listen: false);
+    this.authService = Provider.of<AuthService>(context, listen: false);
+
+    this.socketService.socket.on('mensaje-personal', this._messageListener);
+
+    super.initState();
+  }
+
+  void _messageListener(dynamic data) {
+    print('tengo un mensaje nuevo');
+  }
 
   @override
   Widget build(BuildContext context) {
+    final usuarioTo = this.chatService.usuarioTo;
+
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -30,7 +53,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           children: [
             CircleAvatar(
               child: Text(
-                'DH',
+                usuarioTo.nombre.substring(0, 2),
                 style: TextStyle(fontSize: 12),
               ),
               backgroundColor: Colors.blue[100],
@@ -40,7 +63,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               height: 3,
             ),
             Text(
-              'Daniel Hoyas Martín-Caro',
+              usuarioTo.nombre,
               style: TextStyle(color: Colors.black54, fontSize: 12),
             )
           ],
@@ -132,14 +155,16 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 
   _handleSubmit(String text) {
-    if(text.length == 0) return;
-    print(text);
+    if (text.length == 0) return;
+
+
     _textEditingController.clear();
     _focusNode.requestFocus();
     final newMessage = new ChatMessage(
       uuid: '123',
       text: text,
-      animationController: AnimationController(vsync: this, duration: Duration(milliseconds: 400)),
+      animationController: AnimationController(
+          vsync: this, duration: Duration(milliseconds: 400)),
     );
     newMessage.animationController.forward();
 
@@ -147,16 +172,22 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       _isTyping = false;
       _chatMessages.insert(0, newMessage);
     });
+
+    this.socketService.emit('mensaje-personal', {
+      'from': this.authService.usuario.uuid,
+      'to': this.chatService.usuarioTo.uuid,
+      'mensaje': text
+    });
+
   }
 
   @override
   void dispose() {
     // BORRAR EL SOCKET
-    for( ChatMessage message in _chatMessages ) {
+    for (ChatMessage message in _chatMessages) {
       message.animationController.dispose();
     }
 
     super.dispose();
   }
-
 }
