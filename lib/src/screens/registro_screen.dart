@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/src/helpers/show_alert.dart';
 import 'package:flutter_chat_app/src/services/auth_service.dart';
+import 'package:flutter_chat_app/src/services/socket_service.dart';
 import 'package:flutter_chat_app/src/widgets/Labels.dart';
 import 'package:flutter_chat_app/src/widgets/button_custom.dart';
 import 'package:flutter_chat_app/src/widgets/input_custom.dart';
@@ -50,6 +51,7 @@ class __LoginFormState extends State<_LoginForm> {
   Widget build(BuildContext context) {
 
     final authProvider = Provider.of<AuthService>(context);
+    final socketService = Provider.of<SocketService>(context);
 
     return Container(
       margin: EdgeInsets.only(top: 40),
@@ -79,6 +81,7 @@ class __LoginFormState extends State<_LoginForm> {
           onPress: authProvider.autenticando ? null : () async {
             final registerResponse = await authProvider.register(_nombreController.text, _emailController.text, _passwordController.text);
             if(registerResponse is bool && registerResponse == true) {
+              socketService.connect();
               Navigator.pushReplacementNamed(context, 'usuarios');
             } else {
               showAlert(context, 'Error', registerResponse);

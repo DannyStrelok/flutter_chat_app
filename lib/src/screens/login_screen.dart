@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/src/helpers/show_alert.dart';
 import 'package:flutter_chat_app/src/services/auth_service.dart';
+import 'package:flutter_chat_app/src/services/socket_service.dart';
 import 'package:flutter_chat_app/src/widgets/Labels.dart';
 import 'package:flutter_chat_app/src/widgets/button_custom.dart';
 import 'package:flutter_chat_app/src/widgets/input_custom.dart';
@@ -53,6 +54,7 @@ class __LoginFormState extends State<_LoginForm> {
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context);
+    final socketService = Provider.of<SocketService>(context);
 
     return Container(
       margin: EdgeInsets.only(top: 40),
@@ -82,6 +84,7 @@ class __LoginFormState extends State<_LoginForm> {
                   print(loginResult);
                   if(loginResult) {
                     // ir a la pantalla home
+                    socketService.connect();
                     Navigator.pushReplacementNamed(context, 'usuarios');
                   } else {
                     // mostrar mensaje de error

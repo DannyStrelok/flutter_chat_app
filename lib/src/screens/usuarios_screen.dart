@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/src/models/usuario.dart';
 import 'package:flutter_chat_app/src/services/auth_service.dart';
+import 'package:flutter_chat_app/src/services/socket_service.dart';
 import 'package:provider/provider.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
@@ -10,8 +11,8 @@ class UsuariosScreen extends StatefulWidget {
 }
 
 class _UsuariosScreenState extends State<UsuariosScreen> {
-
-  RefreshController _refreshController = RefreshController(initialRefresh: false);
+  RefreshController _refreshController =
+      RefreshController(initialRefresh: false);
 
   final usuarios = [
     Usuario(uuid: '1', nombre: 'Daniel', email: 'test@test.com', online: true),
@@ -22,6 +23,8 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context);
+    final socketService = Provider.of<SocketService>(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -36,6 +39,7 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
             color: Colors.black54,
           ),
           onPressed: () {
+            socketService.disconnect();
             AuthService.deleteToken();
             Navigator.pushReplacementNamed(context, 'login');
           },
@@ -43,10 +47,15 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
         actions: [
           Container(
             margin: EdgeInsets.only(right: 10.0),
-            child: Icon(
-              Icons.check_circle,
-              color: Colors.blue[400],
-            ),
+            child: socketService.serverStatus == ServerStatus.Online
+                ? Icon(
+                    Icons.check_circle,
+                    color: Colors.blue[400],
+                  )
+                : Icon(
+                    Icons.offline_bolt,
+                    color: Colors.red,
+                  ),
             // child: Icon(Icons.check_circle, color: Colors.red,),
           )
         ],
@@ -56,7 +65,10 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
         enablePullDown: true,
         onRefresh: _loadUsers,
         header: WaterDropHeader(
-          complete: Icon(Icons.check, color: Colors.blue[400],),
+          complete: Icon(
+            Icons.check,
+            color: Colors.blue[400],
+          ),
           waterDropColor: Colors.blue[400],
         ),
         child: _listViewUsuarios(),
@@ -95,5 +107,4 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
     await Future.delayed(Duration(milliseconds: 1000));
     _refreshController.refreshCompleted();
   }
-
 }

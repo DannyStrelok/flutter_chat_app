@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/src/screens/login_screen.dart';
 import 'package:flutter_chat_app/src/screens/usuarios_screen.dart';
 import 'package:flutter_chat_app/src/services/auth_service.dart';
+import 'package:flutter_chat_app/src/services/socket_service.dart';
 import 'package:provider/provider.dart';
 
 class LoadingScreen extends StatelessWidget {
@@ -26,6 +27,8 @@ class LoadingScreen extends StatelessWidget {
     if (autenticado) {
       // Navigator.pushReplacementNamed(context, 'usuarios');
       //EVITAMOS LA ANIMACIÓN DE TRANSICIÓN ENTRE PANTALLAS
+      final socketService = Provider.of<SocketService>(context, listen: false);
+      socketService.connect();
       Navigator.pushReplacement(context, PageRouteBuilder(pageBuilder: (_, __, ___) => UsuariosScreen()));
     } else {
       // Navigator.pushReplacementNamed(context, 'login');
