@@ -37,8 +37,18 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 
   void _messageListener(dynamic data) {
-    print('tengo un mensaje nuevo');
+    ChatMessage message = new ChatMessage(
+        text: data['message'],
+        uuid: data['from'],
+        animationController: AnimationController(
+            vsync: this, duration: Duration(milliseconds: 300)));
+    setState(() {
+      _chatMessages.insert(0, message);
+
+    });
+    message.animationController.forward();
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -157,7 +167,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   _handleSubmit(String text) {
     if (text.length == 0) return;
 
-
     _textEditingController.clear();
     _focusNode.requestFocus();
     final newMessage = new ChatMessage(
@@ -176,18 +185,16 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     this.socketService.emit('mensaje-personal', {
       'from': this.authService.usuario.uuid,
       'to': this.chatService.usuarioTo.uuid,
-      'mensaje': text
+      'message': text
     });
-
   }
 
   @override
   void dispose() {
-    // BORRAR EL SOCKET
     for (ChatMessage message in _chatMessages) {
       message.animationController.dispose();
     }
-
+    this.socketService.socket.off('mensaje-personal');
     super.dispose();
   }
 }
