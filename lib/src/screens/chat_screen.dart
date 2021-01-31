@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_chat_app/src/models/mensajes_response.dart';
 import 'package:flutter_chat_app/src/services/auth_service.dart';
 import 'package:flutter_chat_app/src/services/chat_service.dart';
 import 'package:flutter_chat_app/src/services/socket_service.dart';
@@ -33,6 +34,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
     this.socketService.socket.on('mensaje-personal', this._messageListener);
 
+    _cargarHistorial(this.chatService.usuarioTo.uuid);
+
     super.initState();
   }
 
@@ -44,11 +47,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             vsync: this, duration: Duration(milliseconds: 300)));
     setState(() {
       _chatMessages.insert(0, message);
-
     });
     message.animationController.forward();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -170,7 +171,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     _textEditingController.clear();
     _focusNode.requestFocus();
     final newMessage = new ChatMessage(
-      uuid: '123',
+      uuid: authService.usuario.uuid,
       text: text,
       animationController: AnimationController(
           vsync: this, duration: Duration(milliseconds: 400)),
@@ -186,6 +187,19 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       'from': this.authService.usuario.uuid,
       'to': this.chatService.usuarioTo.uuid,
       'message': text
+    });
+  }
+
+  void _cargarHistorial(String uuid) async {
+    List<Message> mensajes = await this.chatService.getChat(uuid);
+    final historial = mensajes.map((m) => new ChatMessage(
+        text: m.message,
+        uuid: m.from,
+        animationController: new AnimationController(
+            vsync: this, duration: Duration(milliseconds: 300))
+          ..forward()));
+    setState(() {
+      _chatMessages.insertAll(0, historial);
     });
   }
 
